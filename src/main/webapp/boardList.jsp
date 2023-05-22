@@ -10,14 +10,17 @@
 	String dbpw = "java1234";
 	Class.forName(driver);
 	Connection conn = DriverManager.getConnection(dburl, dbuser, dbpw);
-	
-	String sql = "SELECT b.board_title boardTitle, f.origin_filename originFilename, f.save_filename saveFilename, path FROM board b INNER JOIN board_file f ON b.board_no = f.board_no ORDER BY b.createdate DESC";
+	// board와 board_file 테이블 정보 조인하여 조회
+	String sql = "SELECT b.board_no boardNo, b.board_title boardTitle, f.board_file_no boardFileNo, f.origin_filename originFilename, f.save_filename saveFilename, path FROM board b INNER JOIN board_file f ON b.board_no = f.board_no ORDER BY b.createdate DESC";
 	PreparedStatement stmt = conn.prepareStatement(sql);
 	ResultSet rs = stmt.executeQuery();
+	// HashMap ArrayList에 조회한 값 저장
 	ArrayList<HashMap<String, Object>> list = new ArrayList<>();
 	while(rs.next()) {
 		HashMap<String, Object> m = new HashMap<>();
+		m.put("boardNo",rs.getInt("boardNo"));
 		m.put("boardTitle",rs.getString("boardTitle"));
+		m.put("boardFileNo",rs.getInt("boardFileNo"));
 		m.put("originFilename",rs.getString("originFilename"));
 		m.put("saveFilename",rs.getString("saveFilename"));
 		m.put("path",rs.getString("path"));
@@ -28,14 +31,37 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<title>boardList</title>
+<!-- Latest compiled and minified CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Latest compiled JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
+	<div class="container">
 	<h1>PDF자료 목록</h1>
-	<table>
+	<div class="d-grid">
+			<a href="<%=request.getContextPath()%>/addBoard.jsp">
+				<button type="button" class="btn btn-dark btn-block">추가</button>
+			</a>
+			<%
+				//세션 유효성 검사(로그인 유무)
+				if(session.getAttribute("loginMemberId") != null) {
+			%>
+				<a href="<%=request.getContextPath()%>/logoutAction.jsp">
+					<button type="button" class="btn btn-dark">로그아웃</button>
+				</a>
+			<%
+				}
+			%>
+	</div>
+	<table class="table table-bordered">
 		<tr>
-			<td>boardTitle</td>
-			<td>originFilename</td>
+			<th class="table-dark">제목</th>
+			<th class="table-dark">파일</th>
+			<th class="table-dark">수정</th>
+			<th class="table-dark">삭제</th>
 		</tr>
 		<%
 			for(HashMap<String, Object> m : list) {
@@ -44,14 +70,42 @@
 					<td><%=(String)m.get("boardTitle")%></td>
 					<td>
 						<%=(String)m.get("originFilename")%>
-						<a href="<%=request.getContextPath()%>/<%=(String)m.get("path")%>/<%=(String)m.get("saveFilename")%>" download="<%=(String)m.get("originFilename")%>">
-							<button type="button">다운로드</button>
-						</a>
+						<%
+							//세션 유효성 검사(로그인 유무)
+							if(session.getAttribute("loginMemberId") != null) {
+						%>
+							<a href="<%=request.getContextPath()%>/<%=(String)m.get("path")%>/<%=(String)m.get("saveFilename")%>" download="<%=(String)m.get("originFilename")%>">
+								<button type="button" class="btn btn-dark">다운로드</button>
+							</a>
+						<%
+							} else {
+						%>
+							<a href="<%=request.getContextPath()%>/login.jsp">
+								<button type="button" class="btn btn-dark">다운로드</button>
+							</a>
+						<%		
+							}
+						%>
+					</td>
+					<td>
+						<div class="d-grid">
+							<a href="<%=request.getContextPath()%>/modifyBoard.jsp?boardNo=<%=m.get("boardNo")%>&boardFileNo=<%=m.get("boardFileNo")%>">
+								<button type="button" class="btn btn-dark btn-block">수정</button>
+							</a>
+						</div>
+					</td>
+					<td>
+						<div class="d-grid">
+							<a href="<%=request.getContextPath()%>/removeBoard.jsp?boardNo=<%=m.get("boardNo")%>&boardFileNo=<%=m.get("boardFileNo")%>">
+								<button type="button" class="btn btn-dark btn-block">삭제</button>
+							</a>
+						</div>
 					</td>
 				</tr>
 		<%		
 			}
 		%>
 	</table>
+	</div>
 </body>
 </html>

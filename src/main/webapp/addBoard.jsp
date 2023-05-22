@@ -1,12 +1,19 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%
-	String memberId = "test";
+	//세션 유효성 검사(로그인 유무)
+	if(session.getAttribute("loginMemberId") == null) { // 로그인이 되어있지 않다면
+		// 로그인 페이지로 가라
+		response.sendRedirect(request.getContextPath()+"/login.jsp");
+		return;
+	}
+	// 로그인 아이디 정보 저장
+	String memberId = (String)session.getAttribute("loginMemberId");
 %>
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<title>addBoard</title>
 <!-- Latest compiled and minified CSS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -33,7 +40,7 @@
 						<input type="text" name="memberId" value="<%=memberId%>" readonly="readonly">
 					</td>
 				</tr>
-				<!--  -->
+				<!-- 업로드 파일 -->
 				<tr>
 					<th class="table-dark">boardFile</th>
 					<td>

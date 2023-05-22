@@ -6,6 +6,12 @@
 <%@ page import="java.sql.*" %>
 <%@ page import="java.util.*" %>
 <%
+	//세션 유효성 검사(로그인 유무)
+	if(session.getAttribute("loginMemberId") == null) {
+		response.sendRedirect(request.getContextPath()+"/boardList.jsp");
+		return;
+	}
+
 	// 프로젝트안에 있는 upload 폴더의 실제 물리적 위치
 	String dir = request.getServletContext().getRealPath("/upload");
 	System.out.println(dir + " <-- dir");
@@ -35,10 +41,10 @@
 	String boardTitle = mRequest.getParameter("boardTitle");
 	String memberId = mRequest.getParameter("memberId");
 	// 디버깅
-	System.out.println(boardTitle + " <-- boardTitle");
-	System.out.println(memberId + " <-- memberId");
+	System.out.println(boardTitle + " <-- addBoardAction boardTitle");
+	System.out.println(memberId + " <-- addBoardAction memberId");
 	
-	// board 테이블에 저장
+	// Board 객체에 저장
 	Board board = new Board();
 	board.setBoardTitle(boardTitle);
 	board.setMemberId(memberId);
@@ -66,7 +72,7 @@
 	String dbpw = "java1234";
 	Class.forName(driver);
 	Connection conn = DriverManager.getConnection(dburl, dbuser, dbpw);
-
+	// board 테이블에 추가
 	String boardSql = "INSERT INTO board(board_title, member_id, updatedate, createdate) VALUES(?,?,NOW(),NOW())";
 	PreparedStatement boardStmt = conn.prepareStatement(boardSql, PreparedStatement.RETURN_GENERATED_KEYS);
 	boardStmt.setString(1,board.getBoardTitle());
@@ -79,7 +85,7 @@
 	if(keyRs.next()) {
 		boardNo = keyRs.getInt(1);
 	}
-	
+	// board_file 테이블에 추가
 	String boardFileSql = "INSERT INTO board_file(board_no, origin_filename, save_filename, type, path, createdate) VALUES(?,?,?,?,'upload',NOW())";
 	PreparedStatement boardFileStmt = conn.prepareStatement(boardFileSql);
 	boardFileStmt.setInt(1,boardNo);
@@ -87,6 +93,6 @@
 	boardFileStmt.setString(3,boardFile.getSaveFilename());
 	boardFileStmt.setString(4,boardFile.getType());
 	int boardFileRow = boardFileStmt.executeUpdate();
-	
+	// boardList로 가라
 	response.sendRedirect(request.getContextPath()+"/boardList.jsp");
 %>
